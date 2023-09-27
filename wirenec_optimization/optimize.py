@@ -20,7 +20,7 @@ def dipolar_limit(freq):
     lengths = lbd / 2
 
     res = []
-    for i, l in enumerate(lengths):
+    for i, l, in enumerate(lengths):
         g = Geometry([Wire((0, 0, -l / 2), (0, 0, l / 2), 0.5 * 1e-3)])
         f = freq[i]
         scattering = get_scattering_in_frequency_range(g, [f], 90, 90, 0, 270)

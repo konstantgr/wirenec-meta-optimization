@@ -3,7 +3,8 @@ from wirenec.geometry import Geometry
 from wirenec.visualization import plot_geometry
 
 from wirenec_optimization.parametrization.base_parametrization import BaseStructureParametrization
-from wirenec_optimization.parametrization.sample_objects import get_geometry_dimensions, WireParametrization, SRRParametrization
+from wirenec_optimization.parametrization.sample_objects import get_geometry_dimensions, WireParametrization, SSRRParametrization
+# SRRParametrization
 
 
 class LayersParametrization(BaseStructureParametrization):
@@ -12,7 +13,7 @@ class LayersParametrization(BaseStructureParametrization):
 
         self.type_mapping = {
             0: WireParametrization,
-            1: SRRParametrization
+            1: SSRRParametrization
         }
 
         self.matrix_size = matrix_size
