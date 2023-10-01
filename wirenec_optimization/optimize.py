@@ -1,17 +1,16 @@
 import json
-import numpy as np
-import matplotlib.pyplot as plt
-
 from pathlib import Path
-from wirenec.visualization import plot_geometry, scattering_plot
+
+import matplotlib.pyplot as plt
+import numpy as np
 from wirenec.geometry import Geometry, Wire
 from wirenec.scattering import get_scattering_in_frequency_range
-
-from optimization_utils.cmaes_optimizer import cma_optimizer, objective_function
-from parametrization.layers_parametrization import LayersParametrization
-from parametrization.spatial_parametrization import SpatialParametrization
+from wirenec.visualization import scattering_plot  # , plot_geometry
 
 from export_utils.utils import get_macros
+from optimization_utils.cmaes_optimizer import cma_optimizer, objective_function
+from parametrization.layers_parametrization import LayersParametrization
+from wirenec_optimization.optimization_utils.visualization import plot_geometry
 
 
 def dipolar_limit(freq):
@@ -62,7 +61,11 @@ def save_results(
 
     x, y = dipolar_limit(np.linspace(5_000, 14_000, 100))
 
-    parameters_count = int(len(optimized_dict['params']) / 3)
+    parameters_count = (
+        int(len(optimized_dict['params']) / 5)  # two more parameters for deltas
+        if param_hyperparams["asymmetry_factor"] is not None
+        else int(len(optimized_dict['params']) / 3)
+    )
     ax[0].plot(x, np.array(y) * parameters_count, color='b', linestyle='--', label=f'{parameters_count} Bound')
     ax[0].plot(x, np.array(y), color='k', linestyle='--', label=f'Single dipole bound')
 
@@ -93,7 +96,7 @@ if __name__ == "__main__":
     parametrization_hyperparams = {
         'matrix_size': (3, 3), 'layers_num': 1,
         'tau': 20 * 1e-3, 'delta': 10 * 1e-3,
-        'asymmetry_factor': 0.9
+        'asymmetry_factor': 0.2
     }
 
     # parametrization_hyperparams = {
@@ -104,13 +107,12 @@ if __name__ == "__main__":
     # }
 
     optimization_hyperparams = {
-        'iterations': 10, 'seed': 42,
-        "frequencies": tuple([9_000, 10_000]), "scattering_angle": 90
+        'iterations': 1, 'seed': 42,
+        "frequencies": tuple([10_000, ]), "scattering_angle": 90
     }
 
     parametrization = LayersParametrization(**parametrization_hyperparams)
     # parametrization = SpatialParametrization(**parametrization_hyperparams)
-
 
     optimized_dict = cma_optimizer(parametrization, **optimization_hyperparams)
     save_results(parametrization, parametrization_hyperparams, optimization_hyperparams, optimized_dict)
