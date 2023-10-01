@@ -1,6 +1,7 @@
 import numpy as np
 from wirenec.geometry import Geometry
 
+from wirenec_optimization.export_utils.utils import get_macros
 # from wirenec.visualization import plot_geometry
 from wirenec_optimization.optimization_utils.visualization import plot_geometry
 from wirenec_optimization.parametrization.base_parametrization import BaseStructureParametrization
@@ -8,6 +9,8 @@ from wirenec_optimization.parametrization.sample_objects import (
     get_geometry_dimensions, WireParametrization,
     SSRRParametrization, SRRParametrization
 )
+from wirenec_optimization.parametrization import MAIN_FOLDER
+from pathlib import Path
 
 
 class LayersParametrization(BaseStructureParametrization):
@@ -99,3 +102,7 @@ if __name__ == '__main__':
     )
     g = param.get_random_geometry(seed=42)
     plot_geometry(g)
+
+    # Save as CST macros
+    with (MAIN_FOLDER / "../data/sample_layers_macros.txt").open('w+') as f:
+        f.write(get_macros(g))
