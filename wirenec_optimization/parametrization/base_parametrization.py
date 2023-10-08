@@ -19,6 +19,11 @@ class BaseStructureParametrization(ABC):
 
     @property
     @abstractmethod
+    def optimized_objects_count(self):
+        pass
+
+    @property
+    @abstractmethod
     def bounds(self):
         pass
 

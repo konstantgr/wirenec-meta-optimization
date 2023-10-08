@@ -3,7 +3,11 @@ from wirenec.geometry import Geometry
 from wirenec.visualization import plot_geometry
 
 from wirenec_optimization.parametrization.base_parametrization import BaseStructureParametrization
-from wirenec_optimization.parametrization.sample_objects import get_geometry_dimensions, WireParametrization, SRRParametrization
+from wirenec_optimization.parametrization.sample_objects import (
+    get_geometry_dimensions,
+    WireParametrization,
+    SRRParametrization
+)
 
 
 class LayersParametrization(BaseStructureParametrization):
@@ -21,6 +25,10 @@ class LayersParametrization(BaseStructureParametrization):
         self.tau = tau
         self.delta = delta
         self.asymmetry_factor = asymmetry_factor
+
+    @property
+    def optimized_objects_count(self):
+        return np.prod(self.matrix_size) * self.layers_num
 
     @property
     def bounds(self) -> np.ndarray:

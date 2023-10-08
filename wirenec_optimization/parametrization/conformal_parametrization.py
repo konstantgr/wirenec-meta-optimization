@@ -8,6 +8,7 @@ from wirenec_optimization.parametrization.sample_objects import WireParametrizat
 
 class ConformalParametrization(BaseStructureParametrization):
     def __init__(self, matrix_size, tau_x, tau_y, tau_z):
+        # TODO
         super().__init__("layers")
 
         self.type_mapping = {

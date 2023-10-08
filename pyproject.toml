@@ -4,7 +4,12 @@ version = "0.1.0"
 description = ""
 authors = ["konstantgr <konstantin.grotov@gmail.com>"]
 readme = "README.md"
-packages = [{include = "wirenec_optimization"}]
+packages = [
+    {include = "wirenec_optimization"},
+    {include = "parametrization"},
+    {include = "optimization_utils"},
+    {include = "export_utils"}
+]
 
 [tool.poetry.dependencies]
 python = "^3.11"

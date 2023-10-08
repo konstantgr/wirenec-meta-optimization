@@ -4,7 +4,7 @@ from wirenec.geometry import Wire, Geometry
 from wirenec.visualization import plot_geometry
 from wirenec.geometry.samples import double_srr_6GHz
 
-from .base_parametrization import BaseObjectParametrization
+from wirenec_optimization.parametrization.base_parametrization import BaseObjectParametrization
 
 
 def get_geometry_dimensions(geom: Geometry):
