@@ -1,8 +1,10 @@
 import json
+import time
 from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
 from wirenec.geometry import Geometry, Wire
 from wirenec.scattering import get_scattering_in_frequency_range
 from wirenec.visualization import plot_geometry, scattering_plot
@@ -28,6 +30,17 @@ def dipolar_limit(freq):
     return freq, np.array(res)
 
 
+def write_to_file(file_path, content, write_mode='w+', is_json=True):
+    with open(file_path, write_mode) as fp:
+        if is_json:
+            json.dump(content, fp)
+        else:
+            if write_mode == 'wb':
+                np.save(fp, np.array(content))
+            else:
+                fp.write(content)
+
+
 def save_results(
         parametrization,
         param_hyperparams: dict,
@@ -47,17 +60,24 @@ def save_results(
     fig, ax = plt.subplots(2, figsize=(6, 8))
 
     g_optimized = objective_function(parametrization, params=optimized_dict['params'], geometry=True)
-    scattering_plot(
+    _, backward_scattering = scattering_plot(
         ax[0], g_optimized, eta=90, num_points=100,
         scattering_phi_angle=90,
         label='Optimized Geometry. Backward'
     )
 
-    scattering_plot(
+    freq, forward_scattering = scattering_plot(
         ax[0], g_optimized, eta=90, num_points=100,
         scattering_phi_angle=270,
         label='Optimized Geometry. Forward'
     )
+
+    final_spectra_stats = {
+        'backward_argmax': freq[np.argmax(backward_scattering)],
+        'forward_argmax': freq[np.argmax(forward_scattering)],
+        'backward_max': np.max(backward_scattering),
+        'forward_max': np.max(forward_scattering)
+    }
 
     x, y = dipolar_limit(np.linspace(5_000, 14_000, 100))
 
@@ -75,41 +95,67 @@ def save_results(
 
     plot_geometry(g_optimized, from_top=False, save_to=path / 'optimized_geometry.pdf')
 
-    with open(f'{path}/parametrization_hyperparams.json', 'w+') as fp:
-        json.dump(param_hyperparams, fp)
-    with open(f'{path}/optimization_hyperparams.json', 'w+') as fp:
-        json.dump(opt_hyperparams, fp)
-    with open(f'{path}/optimized_params.json', 'w+') as fp:
-        optimized_dict['params'] = optimized_dict['params'].tolist()
-        json.dump(optimized_dict, fp)
-    with open(f'{path}/progress.npy', 'wb') as fp:
-        np.save(fp, np.array(optimized_dict['progress']))
-    with open(f'{path}/macros.txt', 'w+') as fp:
-        fp.write(get_macros(g_optimized))
+    optimized_dict['params'] = optimized_dict['params'].tolist()
+
+    write_to_file(f'{path}/parametrization_hyperparams.json', param_hyperparams)
+    write_to_file(f'{path}/optimization_hyperparams.json', opt_hyperparams)
+    write_to_file(f'{path}/optimized_params.json', optimized_dict)
+    write_to_file(f'{path}/progress.npy', optimized_dict['progress'], 'wb', False)
+    write_to_file(f'{path}/macros.txt', get_macros(g_optimized), 'w', False)
+    write_to_file(f'{path}/optimized_results.json', final_spectra_stats)
 
 
 if __name__ == "__main__":
-    # parametrization_hyperparams = {
-    #     'matrix_size': (3, 3), 'layers_num': 2,
-    #     'tau': 20 * 1e-3, 'delta': 10 * 1e-3,
-    #     'asymmetry_factor': 0.9
-    # }
+    # TODO Optimize main
+    layers_parametrization_hyperparams = {
+        'matrix_size': (3, 3), 'layers_num': 2,
+        'tau': 20 * 1e-3, 'delta': 10 * 1e-3,
+        'asymmetry_factor': 0.9
+    }
 
-    parametrization_hyperparams = {
-        'matrix_size': (3, 3, 3),
+    spatial_parametrization_hyperparams = {
+        'matrix_size': (2, 1, 1),
         'tau_x': 20 * 1e-3,
         'tau_y': 20 * 1e-3,
         'tau_z': 20 * 1e-3,
         'asymmetry_factor': 0.9
     }
 
-    optimization_hyperparams = {
-        'iterations': 2, 'seed': 42,
-        "frequencies": tuple([10_000]), "scattering_angle": 90
-    }
+    multiple_seeds = False
+    optimization_type = 'spatial'
 
-    # parametrization = LayersParametrization(**parametrization_hyperparams)
-    parametrization = SpatialParametrization(**parametrization_hyperparams)
+    if optimization_type == "layers":
+        parametrization_hyperparams = layers_parametrization_hyperparams
+        parametrization = LayersParametrization(**parametrization_hyperparams)
+    elif optimization_type == "spatial":
+        parametrization_hyperparams = spatial_parametrization_hyperparams
+        parametrization = SpatialParametrization(**parametrization_hyperparams)
+    else:
+        raise Exception("Unknown optimization type")
 
-    optimized_dict = cma_optimizer(parametrization, **optimization_hyperparams)
-    save_results(parametrization, parametrization_hyperparams, optimization_hyperparams, optimized_dict)
+
+    if not multiple_seeds:
+        optimization_hyperparams = {
+            'iterations': 5, 'seed': 42,
+            "frequencies": tuple([10_000]), "scattering_angle": 90
+        }
+
+        optimized_dict = cma_optimizer(parametrization, **optimization_hyperparams)
+        save_results(parametrization, parametrization_hyperparams, optimization_hyperparams, optimized_dict)
+    else:
+
+        custom_path = f"data/optimization/experiment_{time.strftime('%I:%M%p_%B_%d_%Y')}/"
+
+        for seed in tqdm(range(0, 5)):
+            optimization_hyperparams = {
+                'iterations': 5, 'seed': seed,
+                "frequencies": tuple([10_000]), "scattering_angle": 90
+            }
+            optimized_dict = cma_optimizer(parametrization, **optimization_hyperparams)
+            save_results(
+                parametrization,
+                parametrization_hyperparams,
+                optimization_hyperparams,
+                optimized_dict,
+                path=custom_path
+            )
