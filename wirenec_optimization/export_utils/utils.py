@@ -1,13 +1,13 @@
 import re
-import numpy as np
 
+import numpy as np
 from wirenec.geometry import Wire, Geometry
 
 
 def vba_wire(p1, p2, wire_radius, name):
     x1, y1, z1 = p1
     x2, y2, z2 = p2
-    s = f'''With Wire
+    s = f"""With Wire
      .Reset 
      .Name "{name}" 
      .Folder "" 
@@ -24,16 +24,16 @@ def vba_wire(p1, p2, wire_radius, name):
      .SolidWireModel "False" 
      .Termination "Extended" 
      .Add
-    End With'''
+    End With"""
     return s
 
 
 def get_macros(g, history=False):
-    s = ''
+    s = ""
     for i, wire in enumerate(g.wires):
         p1, p2 = wire.p1 * 1e3, wire.p2 * 1e3
         wire_radius = wire.radius * 1e3
-        s += '\n' + vba_wire(p1, p2, wire_radius, str(i)) + '\n'
+        s += "\n" + vba_wire(p1, p2, wire_radius, str(i)) + "\n"
 
     if history:
         res = '\nDim t           As String\nt = ""\n'
@@ -48,7 +48,7 @@ def get_macros(g, history=False):
 
 
 def read_data_cst(path):
-    with open(path, 'r') as f:
+    with open(path, "r") as f:
         tmp = f.readlines()
 
     d = []
@@ -59,28 +59,45 @@ def read_data_cst(path):
 
 
 def cst2nec(file_path):
-    with open(file_path, 'r') as f:
+    with open(file_path, "r") as f:
         s = f.read()
 
     wires = []
     i = 0
-    for w_s in s.split('\n\n'):
+    for w_s in s.split("\n\n"):
         for line in w_s.splitlines():
-            if 'Point1' in line:
-                p1 = np.round(np.array(re.findall(r"[-+]?(?:\d*\.*\d+)", line)).astype(float)[1:], 7) * 1e-3
-            if 'Point2' in line:
-                p2 = np.round(np.array(re.findall(r"[-+]?(?:\d*\.*\d+)", line)).astype(float)[1:], 7) * 1e-3
-            if 'Radius' in line:
-                rad = np.array(re.findall(r"[-+]?(?:\d*\.*\d+)", line)).astype(float)[0] * 1e-3
+            if "Point1" in line:
+                p1 = (
+                    np.round(
+                        np.array(re.findall(r"[-+]?(?:\d*\.*\d+)", line)).astype(float)[
+                            1:
+                        ],
+                        7,
+                    )
+                    * 1e-3
+                )
+            if "Point2" in line:
+                p2 = (
+                    np.round(
+                        np.array(re.findall(r"[-+]?(?:\d*\.*\d+)", line)).astype(float)[
+                            1:
+                        ],
+                        7,
+                    )
+                    * 1e-3
+                )
+            if "Radius" in line:
+                rad = (
+                    np.array(re.findall(r"[-+]?(?:\d*\.*\d+)", line)).astype(float)[0]
+                    * 1e-3
+                )
 
         x1, y1, _ = p1
         x2, y2, _ = p2
 
         i += 1
         segments = 3 if rad == 0.00025 else 10
-        wires.append(Wire(
-            p1, p2, rad, segments=segments
-        ))
+        wires.append(Wire(p1, p2, rad, segments=segments))
 
     g = Geometry(wires)
     return g
