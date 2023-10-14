@@ -1,0 +1,15 @@
+parametrization_name: layers
+
+parametrization_hyperparams:
+  matrix_size: [2, 2]
+  layers_num: 2
+  tau: 20e-3
+  delta: 10e-3
+  asymmetry_factor: 0.9
+
+optimization_hyperparams:
+  iterations: 10
+  frequencies: [10_000, ]
+  scattering_angle: 90
+
+seeds_range: [0, 10, 5]

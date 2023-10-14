@@ -1,0 +1,14 @@
+parametrization_name: spatial
+
+parametrization_hyperparams:
+  matrix_size: [2, 1, 1]
+  tau_x: 20e-3
+  tau_y: 20e-3
+  tau_z: 20e-3
+  asymmetry_factor: 0.9
+
+optimization_hyperparams:
+  seed: 42
+  iterations: 100
+  frequencies: [10_000, ]
+  scattering_angle: 90

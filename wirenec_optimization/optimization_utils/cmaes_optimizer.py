@@ -45,7 +45,7 @@ def check_convergence(
     return False
 
 
-def cma_optimizer(
+def cma_optimize(
     structure_parametrization: BaseStructureParametrization,
     iterations: int = 200,
     seed: int = 48,
