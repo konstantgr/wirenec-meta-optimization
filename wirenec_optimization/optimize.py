@@ -13,5 +13,8 @@ if __name__ == "__main__":
     # experiment = SingleOptimizationExperiment(config)
     experiment = MultiSeedOptimizationExperiment(config)
 
-    experiment.run()
-    experiment.save_results()
+    save_each_iteration = True
+    experiment.run(save_each_iteration=save_each_iteration)
+
+    if not save_each_iteration:
+        experiment.save_results()

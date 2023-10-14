@@ -92,7 +92,7 @@ class SingleOptimizationExperiment(BaseExperiment):
             g_optimized, from_top=False, save_to=path / "optimized_geometry.pdf"
         )
 
-        self.optimized_dict["params"] = self.optimized_dict["params"].tolist()
+        self.optimized_dict["params"] = list(self.optimized_dict["params"])
 
         write_to_file(
             f"{path}/parametrization_hyperparams.json", self.parametrization_hyperparams
