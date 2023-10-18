@@ -2,9 +2,12 @@ from typing import Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
+import ray
 from cmaes import CMA
+from ray.util.multiprocessing import Pool
 from scipy.stats import linregress
 from tqdm import tqdm
+
 from wirenec.scattering import get_scattering_in_frequency_range
 
 from wirenec_optimization.parametrization.base_parametrization import (
@@ -71,22 +74,30 @@ def cma_optimize(
     cnt = 0
     max_value, max_params = 0, []
 
-    pbar = tqdm(range(iterations))
     progress = []
 
-    for generation in pbar:
-        solutions = []
-        values = []
-        for _ in range(optimizer.population_size):
-            params = optimizer.ask()
+    ray.init(num_cpus=8)
+    pool = Pool()
 
-            value = objective_function(
-                structure_parametrization,
-                params,
-                freq=frequencies,
-                scattering_angle=scattering_angle,
-            )
-            values.append(value)
+    for generation in tqdm(range(iterations)):
+        solutions = []
+        params_list = [optimizer.ask() for _ in range(optimizer.population_size)]
+
+        with tqdm(total=optimizer.population_size) as pbar:
+            values = []
+            for value in pool.imap(
+                lambda params: objective_function(
+                    structure_parametrization,
+                    params,
+                    freq=frequencies,
+                    scattering_angle=scattering_angle,
+                ),
+                params_list,
+            ):
+                values.append(value)
+                pbar.update()
+
+        for params, value in zip(params_list, values):
             if abs(value) > max_value:
                 max_value = abs(value)
                 max_params = params
@@ -104,6 +115,10 @@ def cma_optimize(
         )
 
         optimizer.tell(solutions)
+
+    pool.close()
+    pool.join()
+    ray.shutdown()
 
     if plot_progress:
         plt.plot(progress, marker=".", linestyle=":")

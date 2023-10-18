@@ -18,6 +18,7 @@ scipy = "^1.9.3"
 bayesianoptimization = "^0.0.0"
 bayesian-optimization = "^1.4.2"
 omegaconf = "^2.3.0"
+ray = "^2.7.1"
 
 
 [build-system]
