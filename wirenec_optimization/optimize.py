@@ -27,6 +27,7 @@ def dipolar_limit(freq):
 
     return freq, np.array(res)
 
+scattering_angle = (80, 90, 100)
 
 def save_results(
         parametrization,
@@ -49,14 +50,20 @@ def save_results(
     g_optimized = objective_function(parametrization, params=optimized_dict['params'], geometry=True)
     scattering_plot(
         ax[0], g_optimized, eta=90, num_points=100,
-        scattering_phi_angle=90,
-        label='Optimized Geometry. Backward'
+        scattering_phi_angle= scattering_angle[0],
+        label='Optimized Geometry. 80'
     )
 
     scattering_plot(
         ax[0], g_optimized, eta=90, num_points=100,
-        scattering_phi_angle=270,
-        label='Optimized Geometry. Forward'
+        scattering_phi_angle= scattering_angle[1],
+        label='Optimized Geometry. 90'
+    )
+
+    scattering_plot(
+        ax[0], g_optimized, eta=90, num_points=100,
+        scattering_phi_angle= scattering_angle[2],
+        label='Optimized Geometry. 100'
     )
 
     x, y = dipolar_limit(np.linspace(5_000, 14_000, 100))
@@ -96,7 +103,7 @@ if __name__ == "__main__":
     parametrization_hyperparams = {
         'matrix_size': (3, 3), 'layers_num': 1,
         'tau': 20 * 1e-3, 'delta': 10 * 1e-3,
-        'asymmetry_factor': 0.2
+        'asymmetry_factor': None
     }
 
     # parametrization_hyperparams = {
@@ -107,8 +114,8 @@ if __name__ == "__main__":
     # }
 
     optimization_hyperparams = {
-        'iterations': 1, 'seed': 42,
-        "frequencies": tuple([10_000, ]), "scattering_angle": 90
+        'iterations': 4, 'seed': 42,
+        "frequencies": tuple([10_000, ]), "scattering_angle": scattering_angle
     }
 
     parametrization = LayersParametrization(**parametrization_hyperparams)

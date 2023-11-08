@@ -13,15 +13,23 @@ from wirenec_optimization.parametrization.base_parametrization import BaseStruct
 def objective_function(
         parametrization: BaseStructureParametrization,
         params: np.ndarray,
-        freq: [list, tuple, np.ndarray] = tuple([10_000]),
-        geometry: bool = False, scattering_angle: float = 90
+        freq: [list, tuple, np.ndarray] = tuple([9000, 10000]),
+        geometry: bool = False, scattering_angle: tuple = ()
 ):
     g = parametrization.get_geometry(params=params)
+    scat_on_freq = []
     if not geometry:
-        scattering, _ = get_scattering_in_frequency_range(
-            g, freq, 90, 90, 90, scattering_angle
-        )
-        return (-1) * np.mean(scattering)
+        for angle in scattering_angle:
+            scattering, _ = get_scattering_in_frequency_range(g, freq, 90, 90, 90, angle)
+            scat_on_freq.append(scattering)
+        return np.mean(scat_on_freq)
+        # for i in range(len(scattering_angle)):
+        #     scattering, _ = get_scattering_in_frequency_range(
+        #         g, freq, 90, 90, 90, scattering_angle[i]
+        #     )
+        #     p = 1/scattering
+            # return (-1) * np.mean(scattering)
+            #return (-1)*(p*scattering[0] + p*scattering[1] + p*scattering[2])
     else:
         return g
 
