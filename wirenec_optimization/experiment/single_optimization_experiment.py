@@ -72,18 +72,20 @@ class SingleOptimizationExperiment(BaseExperiment):
         fig, ax = plt.subplots(2, figsize=(6, 8))
 
         tmp = plot_optimized_scattering(
-            self.parametrization, objective_function, self.optimized_dict, ax[0]
+            self.parametrization,
+            objective_function,
+            self.optimized_dict,
+            ax[0],
+            scattering_phi_angle=self.optimization_hyperparams.get("scattering_angle"),
         )
-        g_optimized, freq, backward_scattering, forward_scattering, ax[0] = tmp
+        g_optimized, freq, scattering_dict, ax[0] = tmp
 
         ax[1] = plot_optimization_progress(self.optimized_dict, ax[1])
 
-        final_spectra_stats = {
-            "backward_argmax": freq[np.argmax(backward_scattering)],
-            "forward_argmax": freq[np.argmax(forward_scattering)],
-            "backward_max": np.max(backward_scattering),
-            "forward_max": np.max(forward_scattering),
-        }
+        final_spectra_stats = {}
+        for angle, sc in scattering_dict.items():
+            final_spectra_stats[f"{angle}_argmax"] = freq[np.argmax(sc)]
+            final_spectra_stats[f"{angle}_max"] = np.max(sc)
 
         fig.savefig(path / "scattering_progress.pdf", dpi=200, bbox_inches="tight")
         plt.show()

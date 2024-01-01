@@ -1,6 +1,6 @@
 import numpy as np
 from wirenec.geometry import Wire, Geometry
-from wirenec.geometry.samples import double_srr_6GHz
+from wirenec.geometry.samples import double_SRR
 from wirenec.visualization import plot_geometry
 
 from wirenec_optimization.parametrization.base_parametrization import (
@@ -29,20 +29,29 @@ class WireParametrization(BaseObjectParametrization):
         return g
 
 
+def double_srr_updated(r=3.25 * 1e-3, p0=(0, 0, 0), wr=0.25 * 1e-3, num=20):
+    g = double_SRR(
+        inner_radius=r, outer_radius=r + 5 * wr, wire_radius=wr, num_of_wires=num
+    )
+    g.translate(p0)
+
+    return g
+
+
 class SRRParametrization(BaseObjectParametrization):
-    def __init__(self, max_size: float = 3.25 * 1e-3, min_size: float = 9 * 1e-3):
+    def __init__(self, max_size: float = 9 * 1e-3, min_size: float = 3.5 * 1e-3):
         super().__init__("SRR", max_size, min_size)
 
     def get_geometry(self, size_ratio, orientation, wire_radius: float = 0.5 * 1e-3):
         r = self.min_size + (self.max_size - self.min_size) * size_ratio
-        g = double_srr_6GHz(r=r)
+        g = double_srr_updated(r=r, wr=wire_radius)
         g.rotate(*orientation)
         return g
 
 
 if __name__ == "__main__":
     wire_param = WireParametrization(20 * 1e-3)
-    srr_param = SRRParametrization()
+    srr_param = SRRParametrization(min_size=2.5 * 1e-3)
 
-    g = srr_param.get_geometry(1, (0, 0, 0))
+    g = srr_param.get_geometry(0, (0, 0, 0), wire_radius=0.1 * 1e-3)
     plot_geometry(g)

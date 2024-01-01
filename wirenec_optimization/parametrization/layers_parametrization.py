@@ -1,5 +1,5 @@
 import numpy as np
-from wirenec.geometry import Geometry
+from wirenec.geometry import Geometry, Wire
 from wirenec.visualization import plot_geometry
 
 from wirenec_optimization.parametrization.base_parametrization import (
@@ -110,10 +110,12 @@ class LayersParametrization(BaseStructureParametrization):
 if __name__ == "__main__":
     param = LayersParametrization(
         matrix_size=(5, 5),
-        layers_num=3,
+        layers_num=1,
         tau=20 * 1e-3,
         delta=10 * 1e-3,
         asymmetry_factor=None,
     )
     g = param.get_random_geometry(seed=42)
+    geometry_fixed = Geometry([Wire((0, 0, 2e-2), (5e-2, 0, 2e-2))])
+    g.wires.extend(geometry_fixed.wires)
     plot_geometry(g)

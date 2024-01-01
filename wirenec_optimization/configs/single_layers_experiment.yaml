@@ -2,13 +2,13 @@ parametrization_name: layers
 
 parametrization_hyperparams:
   matrix_size: [3, 3]
-  layers_num: 3
+  layers_num: 1
   tau: 20e-3
   delta: 30e-3
   asymmetry_factor: 0.7
 
 optimization_hyperparams:
   seed: 42
-  iterations: 20
-  frequencies: [10_000, ]
-  scattering_angle: 90
+  iterations: 100
+  frequencies: [8_000, 10_000,]
+  scattering_angle: [45, 60, 90, 120, 135]
