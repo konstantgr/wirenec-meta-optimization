@@ -97,10 +97,10 @@ If you would like to reference the framework in a publication, please use:
 
 ## Publications
 
-1. Genetically Designed Wire Bundle Superscatterers. IEEE Transaction on Antennas and Propagation. Konstantin Grotov,
-   Dmytro Vovchuk et al., 2022
-2. Superradiant Scattering Limit for Arrays of Subwavelength Scatterers. Physical Review Applied. Anna Mikhailovskaya,
-   Konstantin Grotov, et al., 2022
+1. Genetically Designed Wire Bundle Superscatterers. IEEE Transaction on Antennas and Propagation. Konstantin Grotov et
+   al., 2022
+2. Superradiant Scattering Limit for Arrays of Subwavelength Scatterers. Physical Review Applied. Anna Mikhailovskaya et
+   al., 2022
 3. Superradiant Broadband Magneto-electric Arrays Empowered by Meta-learning. ArXiv. Konstantin Grotov et al., 2023
 
 ## License
