@@ -57,43 +57,39 @@ def plot_optimized_scattering(
     freq_max: float = 14_000,
     num: int = 100,
     polarization_angle: float = 90.0,
+    scattering_phi_angle: tuple = (90, 270),
     limit: Callable = dipolar_limit,
 ):
-    x, y = limit(np.linspace(freq_min, freq_max, num))
+    # x, y = limit(np.linspace(freq_min, freq_max, num))
     parameters_count = int(parametrization.optimized_objects_count)
-    ax.plot(
-        x,
-        np.array(y) * parameters_count,
-        color="b",
-        linestyle="--",
-        label=f"{parameters_count} Bound",
-    )
-    ax.plot(x, np.array(y), color="k", linestyle="--", label="Single dipole bound")
+    # ax.plot(
+    #     x,
+    #     np.array(y) * parameters_count,
+    #     color="b",
+    #     linestyle="--",
+    #     label=f"{parameters_count} Bound",
+    # )
+    # ax.plot(x, np.array(y), color="k", linestyle="--", label="Single dipole bound")
 
     g_optimized = objective_function(
         parametrization, params=optimized_dict["params"], geometry=True
     )
-    _, backward_scattering = scattering_plot(
-        ax,
-        g_optimized,
-        eta=polarization_angle,
-        frequency_start=freq_min,
-        frequency_finish=freq_max,
-        num_points=num,
-        scattering_phi_angle=90,
-        label="Optimized Geometry. Backward",
-    )
-
-    freq, forward_scattering = scattering_plot(
-        ax,
-        g_optimized,
-        eta=polarization_angle,
-        num_points=num,
-        scattering_phi_angle=270,
-        label="Optimized Geometry. Forward",
-    )
+    scattering_dict = {}
+    for angle in scattering_phi_angle:
+        freq, scattering = scattering_plot(
+            ax,
+            g_optimized,
+            eta=polarization_angle,
+            frequency_start=freq_min,
+            frequency_finish=freq_max,
+            num_points=num,
+            phi=angle,
+            scattering_phi_angle=angle,
+            label=f"Optimized Geometry. {angle} degrees",
+        )
+        scattering_dict[angle] = scattering
 
     ax.set_xlim(freq_min, freq_max)
     ax.legend()
 
-    return g_optimized, freq, backward_scattering, forward_scattering, ax
+    return g_optimized, freq, scattering_dict, ax
