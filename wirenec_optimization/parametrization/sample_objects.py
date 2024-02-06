@@ -39,7 +39,7 @@ class WireParametrization(BaseObjectParametrization):
 #         length = self.min_size + (self.max_size - self.min_size) * size_ratio
 #         gap = (length) / 2
 #         dist = (length) / 8
-#         g = Geometry([Wire((gap / 2, length / 2, 0.), (length / 2, length / 2, 0.), wire_radius),
+#       g = Geometry([Wire((gap / 2, length / 2, 0.), (length / 2, length / 2, 0.), wire_radius),
 #                       Wire((length / 2, length / 2, 0.), (length / 2, -length / 2, 0.), wire_radius),
 #                       Wire((length / 2, -length / 2, 0.), (-length / 2, -length / 2, 0.), wire_radius),
 #                       Wire((-length / 2, -length / 2, 0.), (-length / 2, length / 2, 0.), wire_radius),
@@ -109,6 +109,17 @@ class SRRParametrization(BaseObjectParametrization):
         g = Geometry(wires)
         g.rotate(*orientation)
         return g
+
+def create_wire_bundle_geometry(lengths, tau):
+    m, n = lengths.shape
+    wires = []
+    x0, y0 = -(m - 1) * tau / 2, -(n - 1) * tau / 2
+    for i in range(m):
+        for j in range(n):
+            x, y = x0 + i * tau, y0 + j * tau
+            p1, p2 = np.array([x, y, -lengths[i, j]/2]), np.array([x, y, lengths[i, j]/2])
+            wires.append(Wire(p1, p2))
+    return Geometry(wires)
 
 
 if __name__ == '__main__':

@@ -31,9 +31,9 @@ def plot_geometry(g, from_top=False, save_to=None):
                 color=kind_colors[wire.kind],
                 **plot_params)
 
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
+    ax.set_xlabel('X, m')
+    ax.set_ylabel('Y, m')
+    ax.set_zlabel('Z, m')
     ax.tick_params(axis='both', which='major', labelsize=6)
     ax.ticklabel_format(style='sci', scilimits=(0, 0))
 

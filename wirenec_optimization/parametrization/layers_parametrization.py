@@ -1,5 +1,5 @@
 import numpy as np
-from wirenec.geometry import Geometry
+from wirenec.geometry import Wire, Geometry
 
 from wirenec_optimization.export_utils.utils import get_macros
 # from wirenec.visualization import plot_geometry
@@ -19,8 +19,7 @@ class LayersParametrization(BaseStructureParametrization):
 
         self.type_mapping = {
             0: WireParametrization,
-            1: SRRParametrization,
-            2: SSRRParametrization
+            1: SRRParametrization
         }
 
         self.matrix_size = matrix_size
@@ -90,17 +89,55 @@ class LayersParametrization(BaseStructureParametrization):
                     wires += g_tmp.wires
 
         return Geometry(wires)
+def create_wire_bundle_geometry(lengths, tau):
+    m, n = lengths.shape
+
+    wires = []
+    x0, y0 = -(m - 1) * tau / 2, -(n - 1) * tau / 2
+    for i in range(m):
+        for j in range(n):
+            x, y = x0 + i * tau, y0 + j * tau
+            p1, p2 = np.array([x, y, -lengths[i, j]/2]), np.array([x, y, lengths[i, j]/2])
+            wires.append(Wire(p1, p2))
+    return Geometry(wires)
 
 
 if __name__ == '__main__':
-    param = LayersParametrization(
-        matrix_size=(5, 5),
-        layers_num=3,
-        tau=20 * 1e-3,
-        delta=10 * 1e-3,
-        asymmetry_factor=None
-    )
+    hyper_params = {
+        'matrix_size': (3, 3),
+        'layers_num': 1,
+        'tau': 20 * 1e-3,
+        'delta': 10 * 1e-3,
+        'asymmetry_factor': None
+    }
+    param = LayersParametrization(**hyper_params)
     g = param.get_random_geometry(seed=42)
+    # tau_A = 12.87 * 1.5*1e-3
+    # lengths_A = np.array([
+    #     [21.61, 19.84, 21.61],
+    #     [26, 0, 26],
+    #     [21.61, 19.84, 21.61]
+    # ]) * 2*1e-3
+    # unmoving_geometry = create_wire_bundle_geometry(lengths_A, tau_A)
+    # unmoving_geometry.translate([-3*1e-2, 0, 0])
+    # unmoving_geometry.rotate(np.pi/2, np.pi/2, 0)
+    # height = 5.
+    # length = 5
+    # gap = length/2
+    # wire_radius = 0.5 * 1e-4
+    # unmoving_geometry = Geometry([Wire((0., -height/3*1e-2,
+    #                                     height/2*1e-2), (0.,
+    #                                     height/3*1e-2, height/2*1e-2),
+    #                                     0.5 * 1e-4)])
+    # unmoving_geometry = Geometry([Wire((gap / 2, length / 2, height), (length / 2, length / 2, height), wire_radius),
+    #                               Wire((length / 2, length / 2, height), (length / 2, -length / 2, height),
+    #                                    wire_radius),
+    #                               Wire((length / 2, -length / 2, height), (-length / 2, -length / 2, height),
+    #                                    wire_radius),
+    #                               Wire((-length / 2, -length / 2, height), (-length / 2, length / 2, height),
+    #                                    wire_radius),
+    #                               Wire((-length / 2, length / 2, height), (-gap / 2, length / 2, height), wire_radius)])
+    # g.wires.extend(unmoving_geometry.wires)
     plot_geometry(g)
 
     # Save as CST macros

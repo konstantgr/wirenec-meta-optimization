@@ -27,8 +27,9 @@ def dipolar_limit(freq):
 
     return freq, np.array(res)
 
-scattering_angle = (80, 90, 100)
 
+#scattering_angle = (80, 90, 100)
+scattering_angle = (170, 180, 190)
 def save_results(
         parametrization,
         param_hyperparams: dict,
@@ -48,35 +49,36 @@ def save_results(
     fig, ax = plt.subplots(2, figsize=(6, 8))
 
     g_optimized = objective_function(parametrization, params=optimized_dict['params'], geometry=True)
-    scattering_plot(
-        ax[0], g_optimized, eta=90, num_points=100,
-        scattering_phi_angle= scattering_angle[0],
-        label='Optimized Geometry. 80'
+
+    scatter_1 = scattering_plot(
+        ax[0], g_optimized, theta=scattering_angle[0], eta=0, num_points=100,
+        scattering_phi_angle=scattering_angle[0],
+        label='Scattering angle:' + ' ' + str(scattering_angle[0]) + '$\degree$'
     )
 
-    scattering_plot(
-        ax[0], g_optimized, eta=90, num_points=100,
-        scattering_phi_angle= scattering_angle[1],
-        label='Optimized Geometry. 90'
+    scatter_2 = scattering_plot(
+        ax[0],  g_optimized, theta=scattering_angle[1], eta=0, num_points=100,
+        scattering_phi_angle=scattering_angle[1],
+        label='Scattering angle:' + ' ' + str(scattering_angle[1]) + '$\degree$'
     )
 
-    scattering_plot(
-        ax[0], g_optimized, eta=90, num_points=100,
-        scattering_phi_angle= scattering_angle[2],
-        label='Optimized Geometry. 100'
+    scatter_3 = scattering_plot(
+        ax[0], g_optimized, theta=scattering_angle[2], eta=0, num_points=100,
+        scattering_phi_angle=scattering_angle[2],
+        label='Scattering angle:' + ' ' + str(scattering_angle[2]) + '$\degree$'
     )
 
-    x, y = dipolar_limit(np.linspace(5_000, 14_000, 100))
+    x, y = dipolar_limit(np.linspace(2_000, 10_000, 100))
 
     parameters_count = (
         int(len(optimized_dict['params']) / 5)  # two more parameters for deltas
         if param_hyperparams["asymmetry_factor"] is not None
         else int(len(optimized_dict['params']) / 3)
     )
-    ax[0].plot(x, np.array(y) * parameters_count, color='b', linestyle='--', label=f'{parameters_count} Bound')
-    ax[0].plot(x, np.array(y), color='k', linestyle='--', label=f'Single dipole bound')
+    # ax[0].plot(x, np.array(y) * parameters_count, color='b', linestyle='--', label=f'{parameters_count} Bound')
+    # ax[0].plot(x, np.array(y), color='k', linestyle='--', label=f'Single dipole bound')
 
-    ax[0].set_xlim(5_000, 14_000)
+    ax[0].set_xlim(2_000, 10_000)
 
     ax[1].plot(optimized_dict['progress'], marker='.', linestyle=':')
     ax[0].legend()
@@ -85,6 +87,14 @@ def save_results(
     plt.show()
 
     plot_geometry(g_optimized, from_top=False, save_to=path / 'optimized_geometry.pdf')
+
+    with open(f'data/Wire_3_1e2_Opt.txt', "w+") as file:
+            file.write('freq' + '\t' + 'scaterring_' + str(scattering_angle[0]) + '\t'
+                       + 'scaterring_' + str(scattering_angle[1])
+                       + '\t' + 'scaterring_' + str(scattering_angle[2]) + '\n')
+            for i in range(len(scatter_1[0])):
+                file.write(str(scatter_1[0][i]) + '\t' + str(scatter_1[1][i]) + '\t'
+                           + str(scatter_2[1][i]) + '\t' + str(scatter_3[1][i]) + '\n')
 
     with open(f'{path}/parametrization_hyperparams.json', 'w+') as fp:
         json.dump(param_hyperparams, fp)
@@ -114,12 +124,11 @@ if __name__ == "__main__":
     # }
 
     optimization_hyperparams = {
-        'iterations': 4, 'seed': 42,
-        "frequencies": tuple([10_000, ]), "scattering_angle": scattering_angle
+        'iterations': 1, 'seed': 42,
+        "frequencies": tuple([10000]), "scattering_angle": scattering_angle
     }
 
     parametrization = LayersParametrization(**parametrization_hyperparams)
     # parametrization = SpatialParametrization(**parametrization_hyperparams)
-
-    optimized_dict = cma_optimizer(parametrization, **optimization_hyperparams)
+    optimized_dict = cma_optimizer(parametrization, **optimization_hyperparams) 
     save_results(parametrization, parametrization_hyperparams, optimization_hyperparams, optimized_dict)

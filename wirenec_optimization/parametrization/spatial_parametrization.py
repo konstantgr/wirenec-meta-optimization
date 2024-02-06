@@ -12,7 +12,8 @@ class SpatialParametrization(BaseStructureParametrization):
 
         self.type_mapping = {
             0: WireParametrization,
-            1: SSRRParametrization
+            1: SSRRParametrization,
+            2: SSRRParametrization
         }
 
         self.matrix_size = matrix_size

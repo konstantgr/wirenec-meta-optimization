@@ -9,18 +9,53 @@ from typing import Tuple
 from wirenec.scattering import get_scattering_in_frequency_range
 from wirenec_optimization.parametrization.base_parametrization import BaseStructureParametrization
 
+from wirenec.geometry import Wire, Geometry
+
+def create_wire_bundle_geometry(lengths, tau):
+    m, n = lengths.shape
+
+    wires = []
+    x0, y0 = -(m - 1) * tau / 2, -(n - 1) * tau / 2
+    for i in range(m):
+        for j in range(n):
+            x, y = x0 + i * tau, y0 + j * tau
+            p1, p2 = np.array([x, y, -lengths[i, j]/2]), np.array([x, y, lengths[i, j]/2])
+            wires.append(Wire(p1, p2))
+    return Geometry(wires)
 
 def objective_function(
         parametrization: BaseStructureParametrization,
         params: np.ndarray,
-        freq: [list, tuple, np.ndarray] = tuple([9000, 10000]),
-        geometry: bool = False, scattering_angle: tuple = ()
+        freq: [list, tuple, np.ndarray] = tuple([9000, 1000]),
+        geometry: bool = False, scattering_angle: tuple = (90)
 ):
-    g = parametrization.get_geometry(params=params)
+    #g = parametrization.get_geometry(params=params)
+    #g.rotate(0, 0, np.pi/2)
+    #g.translate([0, -2*1e-2, 0])
+    length = 3*1e-2
+    gap = length/2
+    wire_radius = 0.5 * 1e-4
+    height = 3 * 1e-2
+    tau_A = 12.87 *1e-3
+    lengths_A = np.array([
+        [21.61, 19.84, 21.61],
+        [26, 0, 26],
+        [21.61, 19.84, 21.61]
+    ]) * 1e-3
+    #g = create_wire_bundle_geometry(lengths_A, tau_A)
+    g = Geometry([Wire((0., -height/3, height),
+                       (0., height/3, height),
+                        0.5 * 1e-4)])
+    # g = Geometry([Wire((gap / 2, length / 2, height), (length / 2, length / 2, height), wire_radius),
+    #                 Wire((length / 2, length / 2, height), (length / 2, -length / 2, height), wire_radius),
+    #                 Wire((length / 2, -length / 2, height), (-length / 2, -length / 2, height), wire_radius),
+    #                 Wire((-length / 2, -length / 2, height), (-length / 2, length / 2, height), wire_radius),
+    #                 Wire((-length / 2, length / 2, height), (-gap / 2, length / 2, height), wire_radius)])
+    #g.wires.extend(unmoving_geometry.wires)
     scat_on_freq = []
     if not geometry:
         for angle in scattering_angle:
-            scattering, _ = get_scattering_in_frequency_range(g, freq, 90, 90, 90, angle)
+            scattering, _ = get_scattering_in_frequency_range(g, freq, angle, 90, 0, angle)
             scat_on_freq.append(scattering)
         return np.mean(scat_on_freq)
         # for i in range(len(scattering_angle)):
@@ -53,7 +88,8 @@ def cma_optimizer(
         frequencies: Tuple = tuple([9_000]),
         plot_progress: bool = False,
         scattering_angle: float = 90,
-        population_size_factor: float = 1
+        population_size_factor: float = 1,
+        eta: float = 0
 ):
     np.random.seed(seed)
     bounds = structure_parametrization.bounds
@@ -70,7 +106,7 @@ def cma_optimizer(
     )
 
     cnt = 0
-    max_value, max_params = 0, []
+    max_value, max_params = 100000, []
 
     pbar = tqdm(range(iterations))
     progress = []
@@ -86,21 +122,25 @@ def cma_optimizer(
                 freq=frequencies, scattering_angle=scattering_angle
             )
             values.append(value)
-            if abs(value) > max_value:
-                max_value = abs(value)
+            if value < max_value:
+                max_value = value
                 max_params = params
                 cnt += 1
+            # if abs(value) < abs(max_value):
+            #     max_value = abs(value)
+            #     max_params = params
+            #     cnt += 1
 
             solutions.append((params, value))
 
-        progress.append(-np.around(np.mean(values), 15))
+        progress.append(np.around(np.mean(values), 15))
         if check_convergence(progress):
             break
 
         pbar.set_description(
             "Processed %s generation\t max %s mean %s" % (
                 generation, np.around(max_value, 15),
-                -np.around(np.mean(values), 15))
+                np.around(np.mean(values), 15))
         )
 
         optimizer.tell(solutions)
